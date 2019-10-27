@@ -1,13 +1,41 @@
 #import <Cocoa/Cocoa.h>
 
+@interface AppDelegate : NSObject <NSApplicationDelegate>
+@end
+
+@implementation AppDelegate
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification
+{
+    // TODO: Change this to NO for production
+    [NSApp activateIgnoringOtherApps:YES];
+}
+
+@end
+
 int main (int argc, char const *argv[]) {
     @autoreleasepool {
+        NSString *appName = @"Handmade Hero";
+
         // Boot application
         [NSApplication sharedApplication];
         [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+        AppDelegate *appDelegate = [[AppDelegate alloc] init];
+        [NSApp setDelegate:appDelegate];
         [NSApp finishLaunching];
-        // TODO: Change this to NO for production
-        [NSApp activateIgnoringOtherApps:YES];
+
+        // Setup main menu
+        NSMenu *menuBar = [[NSMenu alloc] init];
+        NSMenuItem *menuBarAppItem = [[NSMenuItem alloc] init];
+        NSMenu *appMenu = [[NSMenu alloc] init];
+        NSString *quitItemTitle = [@"Quit " stringByAppendingString:appName];
+        NSMenuItem *quitItem = [[NSMenuItem alloc] initWithTitle:quitItemTitle
+                                                          action:@selector(terminate:)
+                                                   keyEquivalent:@"q"];
+        [menuBar addItem:menuBarAppItem];
+        [menuBarAppItem setSubmenu:appMenu];
+        [appMenu addItem:quitItem];
+        [NSApp setMainMenu:menuBar];
 
         // Setup window
         NSRect frame = NSMakeRect(0, 0, 300, 300);
@@ -19,10 +47,11 @@ int main (int argc, char const *argv[]) {
                                                        styleMask:styleMask
                                                          backing:NSBackingStoreBuffered
                                                            defer:NO];
-        [window setTitle:@"Handmade"];
+        [window setTitle:appName];
         [window center];
         [window makeKeyAndOrderFront:nil];
 
+        // Event loop
         while (true) {
             NSEvent *event;
 
