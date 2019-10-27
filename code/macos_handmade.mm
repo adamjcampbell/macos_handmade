@@ -1,18 +1,5 @@
 #import <Cocoa/Cocoa.h>
 
-@interface AppDelegate : NSObject <NSApplicationDelegate>
-@end
-
-@implementation AppDelegate
-
-- (void)applicationDidFinishLaunching:(NSNotification *)notification
-{
-    // TODO: Change this to NO for production
-    [NSApp activateIgnoringOtherApps:YES];
-}
-
-@end
-
 int main (int argc, char const *argv[]) {
     @autoreleasepool {
         NSString *appName = @"Handmade Hero";
@@ -20,9 +7,18 @@ int main (int argc, char const *argv[]) {
         // Boot application
         [NSApplication sharedApplication];
         [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-        AppDelegate *appDelegate = [[AppDelegate alloc] init];
-        [NSApp setDelegate:appDelegate];
         [NSApp finishLaunching];
+
+        NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+        NSNotificationName notificationName = NSApplicationDidFinishLaunchingNotification;
+        void (^didFinishLaunchingBlock)(NSNotification *) = ^void(NSNotification *note) {
+            // TODO: Change this to NO for production
+            [NSApp activateIgnoringOtherApps:YES];
+        };
+        __unused id observer = [notificationCenter addObserverForName:notificationName
+                                                               object:nil
+                                                                queue:nil
+                                                           usingBlock:didFinishLaunchingBlock];
 
         // Setup main menu
         NSMenu *menuBar = [[NSMenu alloc] init];
