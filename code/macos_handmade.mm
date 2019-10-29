@@ -99,10 +99,8 @@ int main (int argc, char const *argv[]) {
                                       NSWindowStyleMaskClosable |
                                       NSWindowStyleMaskResizable |
                                       NSWindowStyleMaskMiniaturizable;
-        NSWindow *window = [[NSWindow alloc] initWithContentRect:frame
-                                                       styleMask:styleMask
-                                                         backing:NSBackingStoreBuffered
-                                                           defer:NO];
+        NSWindow *window = [[NSWindow alloc] initWithContentRect:frame styleMask:styleMask
+                                                         backing:NSBackingStoreBuffered defer:NO];
         [window setReleasedWhenClosed:false];
         [window setTitle:appName];
         [window center];
@@ -118,10 +116,8 @@ int main (int argc, char const *argv[]) {
             NSEvent *event;
 
             do {
-                event = [NSApp nextEventMatchingMask:NSEventMaskAny
-                                           untilDate:nil
-                                              inMode:NSDefaultRunLoopMode
-                                             dequeue:YES];
+                event = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:nil
+                                              inMode:NSDefaultRunLoopMode dequeue:YES];
                 [NSApp sendEvent:event];
             } while (event != nil);
 
