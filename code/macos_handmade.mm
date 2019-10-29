@@ -14,6 +14,7 @@ struct macos_offscreen_buffer {
 };
 
 // Global for now
+global_variable bool globalRunning;
 global_variable macos_offscreen_buffer globalBackBuffer;
 global_variable CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 
@@ -61,16 +62,23 @@ int main (int argc, char const *argv[]) {
         [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
         [NSApp finishLaunching];
 
+        // Setup notifications
         NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-        NSNotificationName notificationName = NSApplicationDidFinishLaunchingNotification;
+        NSNotificationName didFinishLaunching = NSApplicationDidFinishLaunchingNotification;
         void (^didFinishLaunchingBlock)(NSNotification *) = ^void(NSNotification *note) {
             // TODO: Change this to NO for production
             [NSApp activateIgnoringOtherApps:YES];
         };
-        __unused id observer = [notificationCenter addObserverForName:notificationName
-                                                               object:nil
-                                                                queue:nil
-                                                           usingBlock:didFinishLaunchingBlock];
+        NSNotificationName windowWillClose = NSWindowWillCloseNotification;
+        void (^windowWillCloseBlock)(NSNotification *) = ^void(NSNotification *note) {
+            globalRunning = false;
+        };
+        __unused NSArray *observers = @[
+            [notificationCenter addObserverForName:didFinishLaunching object:nil queue:nil
+                                        usingBlock:didFinishLaunchingBlock],
+            [notificationCenter addObserverForName:windowWillClose object:nil queue:nil
+                                        usingBlock:windowWillCloseBlock]
+        ];
 
         // Setup main menu
         NSMenu *menuBar = [[NSMenu alloc] init];
@@ -95,6 +103,7 @@ int main (int argc, char const *argv[]) {
                                                        styleMask:styleMask
                                                          backing:NSBackingStoreBuffered
                                                            defer:NO];
+        [window setReleasedWhenClosed:false];
         [window setTitle:appName];
         [window center];
         [window makeKeyAndOrderFront:nil];
@@ -102,9 +111,10 @@ int main (int argc, char const *argv[]) {
         MacOsResizeBitmapContext(&globalBackBuffer, 1280, 720);
 
         // Event loop
+        globalRunning = true;
         int xOffset = 0;
 
-        while (true) {
+        while (globalRunning) {
             NSEvent *event;
 
             do {
