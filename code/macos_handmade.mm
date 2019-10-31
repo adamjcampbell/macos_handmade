@@ -30,8 +30,9 @@ internal void MacOsResizeBitmapContext(macos_offscreen_buffer *buffer, int width
     buffer->bytesPerPixel = 4;
     buffer->pitch = width * buffer->bytesPerPixel;
     buffer->memory = calloc(height, buffer->pitch);
-    buffer->context = CGBitmapContextCreate(buffer->memory, width, height, 8,
-                                            buffer->pitch, colorSpace, kCGImageAlphaNoneSkipLast);
+    buffer->context = CGBitmapContextCreate(buffer->memory, width, height, 8, buffer->pitch,
+                                            colorSpace, kCGImageAlphaNoneSkipFirst |
+                                            kCGBitmapByteOrder32Little);
 }
 
 internal void RenderWeirdGradient(macos_offscreen_buffer buffer, int xOffset, int yOffset) {
@@ -42,7 +43,7 @@ internal void RenderWeirdGradient(macos_offscreen_buffer buffer, int xOffset, in
             uint8_t blue = x + xOffset;
             uint8_t green = y + yOffset;
 
-            *pixel++ = ((blue << 16) | (green << 8));
+            *pixel++ = ((green << 8) | blue);
         }
         row += buffer.pitch;
     }
