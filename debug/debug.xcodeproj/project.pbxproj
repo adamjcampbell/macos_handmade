@@ -10,6 +10,7 @@
 		151B83912368584300044D6E /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 151B83902368584300044D6E /* AudioToolbox.framework */; };
 		15222F7D2365128400304424 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15222F7C2365128400304424 /* Cocoa.framework */; };
 		15222F80236512D600304424 /* macos_handmade.mm in Sources */ = {isa = PBXBuildFile; fileRef = 15222F7F236512D600304424 /* macos_handmade.mm */; };
+		15278531236D848700976BFD /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 15278530236D848700976BFD /* IOKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,6 +30,7 @@
 		15222F6F236511ED00304424 /* debug */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = debug; sourceTree = BUILT_PRODUCTS_DIR; };
 		15222F7C2365128400304424 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		15222F7F236512D600304424 /* macos_handmade.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = macos_handmade.mm; sourceTree = "<group>"; };
+		15278530236D848700976BFD /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +40,7 @@
 			files = (
 				15222F7D2365128400304424 /* Cocoa.framework in Frameworks */,
 				151B83912368584300044D6E /* AudioToolbox.framework in Frameworks */,
+				15278531236D848700976BFD /* IOKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -66,6 +69,7 @@
 		15222F7B2365128400304424 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				15278530236D848700976BFD /* IOKit.framework */,
 				151B83902368584300044D6E /* AudioToolbox.framework */,
 				15222F7C2365128400304424 /* Cocoa.framework */,
 			);

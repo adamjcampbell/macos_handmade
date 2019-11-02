@@ -1,5 +1,6 @@
 #import <Cocoa/Cocoa.h>
 #import <AudioToolbox/AudioToolbox.h>
+#include <IOKit/hid/IOHIDManager.h>
 
 #define internal static
 #define local_persist static
@@ -127,6 +128,63 @@ internal void MacOsStopCoreAudio() {
     AudioComponentInstanceDispose(outputUnit);
 }
 
+internal void input_value(void * _Nullable context, IOReturn result, void * _Nullable sender,
+                          IOHIDValueRef value) {
+    IOHIDElementRef element = IOHIDValueGetElement(value);
+    IOHIDElementType type = IOHIDElementGetType(element);
+    uint32_t page = IOHIDElementGetUsagePage(element);
+    uint32_t usage = IOHIDElementGetUsage(element);
+    CFIndex integerValue = IOHIDValueGetIntegerValue(value);
+
+    NSLog(@"type=%d, page=%d, usage=%d, value=%ld\n", type, page, usage, (long)integerValue);
+}
+
+internal void device_attached(void* ctx, IOReturn result, void* sender, IOHIDDeviceRef device) {
+    NSString *name = (__bridge NSString *)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
+    if (!name) return;
+
+#ifdef DEBUG
+    NSLog(@"attached device: %@\n", name);
+#endif
+
+    IOHIDDeviceOpen(device, kIOHIDOptionsTypeNone);
+    IOHIDDeviceScheduleWithRunLoop(device, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+    IOHIDDeviceRegisterInputValueCallback(device, input_value, NULL);
+}
+
+static void device_detached(void* ctx, IOReturn result, void* sender, IOHIDDeviceRef device) {
+    NSString *name = (__bridge NSString *)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
+    if (!name) return;
+
+#ifdef DEBUG
+    NSLog(@"detatched device: %@\n", name);
+#endif
+
+    IOHIDDeviceClose(device, kIOHIDOptionsTypeNone);
+}
+
+internal IOHIDManagerRef MacOSSetupInput() {
+    NSArray *matcher = @[
+        @{
+            @kIOHIDDeviceUsagePageKey: @(kHIDPage_GenericDesktop),
+            @kIOHIDDeviceUsageKey: @(kHIDUsage_GD_Keyboard)
+        },
+        @{
+            @kIOHIDDeviceUsagePageKey: @(kHIDPage_GenericDesktop),
+            @kIOHIDDeviceUsageKey: @(kHIDUsage_GD_GamePad)
+        }
+    ];
+
+    IOHIDManagerRef hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
+    IOHIDManagerSetDeviceMatchingMultiple(hidManager, (__bridge CFArrayRef)matcher);
+    IOHIDManagerRegisterDeviceMatchingCallback(hidManager, device_attached, NULL);
+    IOHIDManagerRegisterDeviceRemovalCallback(hidManager, device_detached, NULL);
+    IOHIDManagerScheduleWithRunLoop(hidManager, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+    IOHIDManagerOpen(hidManager, kIOHIDOptionsTypeNone);
+
+    return hidManager;
+}
+
 int main (int argc, char const *argv[]) {
     @autoreleasepool {
         NSString *appName = @"Handmade Hero";
@@ -180,6 +238,9 @@ int main (int argc, char const *argv[]) {
         [window setTitle:appName];
         [window center];
         [window makeKeyAndOrderFront:nil];
+
+        // Setup input
+        __unused IOHIDManagerRef hidManager = MacOSSetupInput();
 
         MacOsResizeBitmapContext(&globalBackBuffer, 1280, 720);
         MacOsStartCoreAudio();
