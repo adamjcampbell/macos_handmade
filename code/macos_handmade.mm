@@ -128,18 +128,40 @@ internal void MacOsStopCoreAudio() {
     AudioComponentInstanceDispose(outputUnit);
 }
 
-internal void input_value(void * _Nullable context, IOReturn result, void * _Nullable sender,
-                          IOHIDValueRef value) {
+internal void MacOsProcessInput(void * _Nullable context, IOReturn result, void * _Nullable sender,
+                                IOHIDValueRef value) {
     IOHIDElementRef element = IOHIDValueGetElement(value);
     IOHIDElementType type = IOHIDElementGetType(element);
     uint32_t page = IOHIDElementGetUsagePage(element);
     uint32_t usage = IOHIDElementGetUsage(element);
     CFIndex integerValue = IOHIDValueGetIntegerValue(value);
 
+    CFIndex min = IOHIDElementGetLogicalMin(element);
+    CFIndex max = IOHIDElementGetLogicalMax(element);
+
     NSLog(@"type=%d, page=%d, usage=%d, value=%ld\n", type, page, usage, (long)integerValue);
+
+    if (page == kHIDPage_GenericDesktop && type == kIOHIDElementTypeInput_Misc) {
+        float normalised = (float)(integerValue - min) / (float)(max - min);
+
+        switch (usage) {
+            case 0x30:
+            {
+                NSLog(@"[x] scaled = %f\n", normalised);
+                break;
+            };
+            case 0x31:
+            {
+                NSLog(@"[y] scaled = %f\n", normalised);
+                break;
+            };
+            default:
+                break;
+        }
+    }
 }
 
-internal void device_attached(void* ctx, IOReturn result, void* sender, IOHIDDeviceRef device) {
+internal void MacOsDeviceAttached(void* ctx, IOReturn result, void* sender, IOHIDDeviceRef device) {
     NSString *name = (__bridge NSString *)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
     if (!name) return;
 
@@ -149,10 +171,10 @@ internal void device_attached(void* ctx, IOReturn result, void* sender, IOHIDDev
 
     IOHIDDeviceOpen(device, kIOHIDOptionsTypeNone);
     IOHIDDeviceScheduleWithRunLoop(device, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
-    IOHIDDeviceRegisterInputValueCallback(device, input_value, NULL);
+    IOHIDDeviceRegisterInputValueCallback(device, MacOsProcessInput, NULL);
 }
 
-static void device_detached(void* ctx, IOReturn result, void* sender, IOHIDDeviceRef device) {
+static void MacOsDeviceDetached(void* ctx, IOReturn result, void* sender, IOHIDDeviceRef device) {
     NSString *name = (__bridge NSString *)IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductKey));
     if (!name) return;
 
@@ -177,8 +199,8 @@ internal IOHIDManagerRef MacOSSetupInput() {
 
     IOHIDManagerRef hidManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
     IOHIDManagerSetDeviceMatchingMultiple(hidManager, (__bridge CFArrayRef)matcher);
-    IOHIDManagerRegisterDeviceMatchingCallback(hidManager, device_attached, NULL);
-    IOHIDManagerRegisterDeviceRemovalCallback(hidManager, device_detached, NULL);
+    IOHIDManagerRegisterDeviceMatchingCallback(hidManager, MacOsDeviceAttached, NULL);
+    IOHIDManagerRegisterDeviceRemovalCallback(hidManager, MacOsDeviceDetached, NULL);
     IOHIDManagerScheduleWithRunLoop(hidManager, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
     IOHIDManagerOpen(hidManager, kIOHIDOptionsTypeNone);
 
